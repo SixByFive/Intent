@@ -15,7 +15,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: FalconChipp/intent/.github/actions/intent-pr@main
+      - uses: SixByFive/intent/.github/actions/intent-pr@main
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           base-ref: origin/${{ github.base_ref }}

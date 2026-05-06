@@ -15,6 +15,7 @@ Git already tracks *what* changed. Intent tracks *why* it changed.
 - [Quick start](#quick-start)
 - [The .intent/ format](#the-intent-format)
 - [CLI reference](#cli-reference)
+- [Export commands](#intent-export-target)
 - [GitHub Action](#github-action)
 - [MCP server](#mcp-server)
 - [Monorepo structure](#monorepo-structure)
@@ -277,6 +278,28 @@ The links index is auto-generated and excluded from git (via `.intent/.gitignore
 
 ---
 
+### `intent export <target>`
+
+Export intent context as a formatted markdown block into the config file that your editor or AI tool reads automatically.
+
+```bash
+intent export claude    # → CLAUDE.md
+intent export cursor    # → .cursor/rules
+intent export copilot   # → .github/copilot-instructions.md
+```
+
+All three support an optional `--system` filter:
+
+```bash
+intent export claude --system marketplace
+```
+
+The exported block is wrapped in `<!-- intent-context:start -->` / `<!-- intent-context:end -->` markers so re-running the command updates it in place without touching the rest of the file.
+
+**When to run it:** after `intent init`, and again whenever you add or update `.intent/` files. You can wire it into a git hook or CI step to keep it current automatically.
+
+---
+
 ## GitHub Action
 
 Add automatic intent context comments to pull requests.
@@ -303,7 +326,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: FalconChipp/intent/.github/actions/intent-pr@main
+      - uses: SixByFive/intent/.github/actions/intent-pr@main
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           base-ref: origin/${{ github.base_ref }}
@@ -346,11 +369,11 @@ act pull_request --secret GITHUB_TOKEN=your_pat
 
 ## MCP server
 
-Intent ships an MCP server so AI agents (Claude, Cursor, Copilot, etc.) can query your intent context directly during a task.
+Intent ships an MCP server so AI agents can query your intent context directly during a task. The server speaks standard MCP over stdio and works with any MCP-compatible client.
 
-### Configuration
+### Claude Code
 
-Add to your Claude Code or Cursor MCP config:
+Add to `.claude/settings.json` in your project, or to `~/.claude/settings.json` globally:
 
 ```json
 {
@@ -363,15 +386,61 @@ Add to your Claude Code or Cursor MCP config:
 }
 ```
 
+### Cursor
+
+Add to `.cursor/mcp.json` in your project:
+
+```json
+{
+  "mcpServers": {
+    "intent": {
+      "command": "npx",
+      "args": ["@intent/mcp"]
+    }
+  }
+}
+```
+
+### OpenAI Codex CLI
+
+Add to `~/.codex/config.yaml`:
+
+```yaml
+mcpServers:
+  intent:
+    command: npx
+    args:
+      - "@intent/mcp"
+```
+
+### ChatGPT desktop
+
+Add to your ChatGPT desktop MCP config (`~/Library/Application Support/ChatGPT/mcp.json` on Mac, `%APPDATA%\ChatGPT\mcp.json` on Windows):
+
+```json
+{
+  "mcpServers": {
+    "intent": {
+      "command": "npx",
+      "args": ["@intent/mcp"]
+    }
+  }
+}
+```
+
+> **Note:** ChatGPT desktop MCP support requires the ChatGPT desktop app with MCP enabled. See [OpenAI's MCP guide](https://platform.openai.com/docs/guides/tools/model-context-protocol) for setup steps.
+
 ### Available tools
 
 | Tool | Description |
 |---|---|
 | `intent_context` | Get all plans, decisions, and systems. Optionally filter by system. |
-| `intent_review_diff` | Get intent context relevant to the current git diff. |
+| `intent_review_diff` | Get intent context relevant to the current git diff. Supports `--base` for CI. |
 | `intent_list_plans` | List all plans. |
 | `intent_list_decisions` | List all architectural decisions. |
+| `intent_list_systems` | List all system definitions. |
 | `intent_rebuild_links` | Rebuild the links index. |
+| `intent_export` | Export context as markdown, or write to `claude`/`cursor`/`copilot` target files. |
 
 ### Example agent workflow
 
@@ -383,6 +452,10 @@ Agent calls: intent_review_diff → sees DEC-0001 applies to auth changes
 Agent now knows: free users → 5 listings, vendor users → unlimited
 Agent implements accordingly, without asking the user to re-explain the plan
 ```
+
+### Tools without MCP support
+
+For tools that don't support MCP (web interfaces, older IDE extensions), use `intent export` to generate a static context file instead. See the [CLI reference](#intent-export-target) above.
 
 ---
 
@@ -401,7 +474,7 @@ packages/
 ### Building from source
 
 ```bash
-git clone https://github.com/FalconChipp/intent
+git clone https://github.com/SixByFive/intent
 cd intent
 pnpm install
 pnpm build
@@ -430,6 +503,6 @@ pnpm dev   # watch mode across all packages
 
 ## Contributing
 
-Issues and PRs welcome at [github.com/FalconChipp/intent](https://github.com/FalconChipp/intent).
+Issues and PRs welcome at [github.com/SixByFive/intent](https://github.com/SixByFive/intent).
 
 When contributing, keep the dependency rule in mind: `schemas → core → cli/mcp`. All business logic belongs in `core`, not in `cli` command handlers.
