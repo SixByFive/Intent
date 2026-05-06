@@ -1,0 +1,21 @@
+name: Intent PR Context
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  intent:
+    name: Post intent context
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: FalconChipp/intent/.github/actions/intent-pr@main
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          base-ref: origin/${{ github.base_ref }}
