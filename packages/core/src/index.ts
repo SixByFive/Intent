@@ -14,3 +14,4 @@ export * from "./reviewDiff.js";
 export * from "./export.js";
 export * from "./validate.js";
 export * from "./status.js";
+export * from "./agent.js";

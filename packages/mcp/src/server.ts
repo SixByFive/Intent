@@ -17,6 +17,8 @@ import {
   formatContextBlock,
   validateIntent,
   getStatus,
+  prepareAgentContext,
+  reviewAgent,
   type ExportTarget,
 } from "@intent/core";
 
@@ -106,6 +108,29 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       inputSchema: {
         type: "object",
         properties: {
+          cwd: { type: "string", description: "Working directory" },
+        },
+      },
+    },
+    {
+      name: "intent_agent_prepare",
+      description: "Get intent context relevant to a task. Scores plans/decisions/systems by keyword match against the task description, pulls in cross-referenced items transitively. Falls back to full context when nothing matches.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          task: { type: "string", description: "Natural-language description of the task you are about to work on" },
+          cwd: { type: "string", description: "Working directory" },
+        },
+      },
+    },
+    {
+      name: "intent_agent_review",
+      description: "Review the current diff against intent and validate all files. Returns a checklist and flags whether unlinked changes suggest a new decision record is needed.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          staged: { type: "boolean", description: "Review staged changes only (default: true)" },
+          base: { type: "string", description: "Diff against a git ref instead of staged/unstaged" },
           cwd: { type: "string", description: "Working directory" },
         },
       },
@@ -201,6 +226,37 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
   if (name === "intent_status") {
     const result = await getStatus(root);
+    if (!result.ok) {
+      return { content: [{ type: "text", text: `Error: ${result.error.message}` }], isError: true };
+    }
+    return { content: [{ type: "text", text: JSON.stringify(result.value, null, 2) }] };
+  }
+
+  if (name === "intent_agent_prepare") {
+    const task = args?.["task"] as string | undefined ?? null;
+    const result = await prepareAgentContext(root, task);
+    if (!result.ok) {
+      return { content: [{ type: "text", text: `Error: ${result.error.message}` }], isError: true };
+    }
+    const r = result.value;
+    return {
+      content: [{
+        type: "text",
+        text: JSON.stringify({
+          task: r.task,
+          plans: r.plans.map((p) => ({ id: p.frontmatter.id, title: p.frontmatter.title, status: p.frontmatter.status })),
+          decisions: r.decisions.map((d) => ({ id: d.frontmatter.id, title: d.frontmatter.title })),
+          systems: r.systems.map((s) => ({ id: s.frontmatter.id, title: s.frontmatter.title })),
+          formatted: r.formatted,
+        }, null, 2),
+      }],
+    };
+  }
+
+  if (name === "intent_agent_review") {
+    const staged = (args?.["staged"] as boolean | undefined) ?? true;
+    const base = args?.["base"] as string | undefined;
+    const result = await reviewAgent(root, staged, base);
     if (!result.ok) {
       return { content: [{ type: "text", text: `Error: ${result.error.message}` }], isError: true };
     }

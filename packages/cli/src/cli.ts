@@ -10,6 +10,7 @@ import { makeLinkCommand } from "./commands/link.js";
 import { makeExportCommand } from "./commands/export.js";
 import { makeValidateCommand } from "./commands/validate.js";
 import { makeStatusCommand } from "./commands/status.js";
+import { makeAgentCommand } from "./commands/agent.js";
 
 const program = new Command();
 
@@ -28,6 +29,7 @@ program.addCommand(makeLinkCommand());
 program.addCommand(makeExportCommand());
 program.addCommand(makeValidateCommand());
 program.addCommand(makeStatusCommand());
+program.addCommand(makeAgentCommand());
 
 program.parseAsync(process.argv).catch((err: unknown) => {
   console.error(err);
