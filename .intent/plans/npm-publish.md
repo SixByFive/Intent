@@ -2,9 +2,9 @@
 id: plan-npm-publish
 title: Publish to npm
 type: plan
-status: draft
+status: active
 created: '2026-05-07T18:35:37.803Z'
-updated: '2026-05-07T18:35:37.803Z'
+updated: '2026-05-07T19:30:00.000Z'
 decisions: []
 constraints: []
 tags:
@@ -29,11 +29,12 @@ Until the packages are on npm, the GitHub Action composite and all MCP config sn
 
 ## Checklist
 
-- [ ] Add `publishConfig: { access: "public" }` to each package.json
-- [ ] Add `files` field to each package.json (include `dist/` only, exclude `src/`)
-- [ ] Verify shebang on `packages/cli/dist/cli.js` after build
-- [ ] Add `.npmignore` or rely on `files` field
+- [x] Add `publishConfig: { access: "public" }` to each package.json
+- [x] Add `files` field to cli/mcp package.json; `.npmignore` for schemas/core (excludes test files, turbo cache, tsconfig)
+- [x] Add MIT `LICENSE` file
+- [x] Add `repository`, `license`, `keywords` fields to all package.json files
+- [x] Verify shebang on `packages/cli/dist/cli.js` after build — confirmed present
+- [x] Dry-run with `pnpm publish --dry-run` for all four packages — all pass, tarballs clean
 - [ ] Create npm org `@intent` or confirm scope availability
-- [ ] Dry-run with `pnpm publish --dry-run` from each package
 - [ ] Tag `v0.1.0` and publish
-- [ ] Update README install instructions from source to npm
+- [ ] Update README install instructions from source to npm (currently pointing at npm already)
