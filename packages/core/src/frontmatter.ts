@@ -32,5 +32,8 @@ export function serializeFrontmatter<T extends Record<string, unknown>>(
   frontmatter: T,
   body: string,
 ): string {
-  return matter.stringify(body, frontmatter);
+  const clean = Object.fromEntries(
+    Object.entries(frontmatter).filter(([, v]) => v !== undefined),
+  );
+  return matter.stringify(body, clean);
 }
