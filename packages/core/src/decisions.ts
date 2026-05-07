@@ -1,6 +1,6 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import { DecisionFrontmatterSchema, type DecisionFrontmatter, type DecisionFile } from "@intent/schemas";
+import { DecisionFrontmatterSchema, type DecisionFrontmatter, type DecisionFile } from "@dev-sixbyfive/intent-schemas";
 import { type Result, ok, err, intentError } from "./result.js";
 import { parseFrontmatter, serializeFrontmatter } from "./frontmatter.js";
 import { decisionsDir, decisionPath } from "./paths.js";

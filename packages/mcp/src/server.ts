@@ -20,7 +20,7 @@ import {
   prepareAgentContext,
   reviewAgent,
   type ExportTarget,
-} from "@intent/core";
+} from "@dev-sixbyfive/intent-core";
 
 const server = new Server(
   { name: "intent", version: "0.0.1" },

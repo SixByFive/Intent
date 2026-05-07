@@ -1,5 +1,5 @@
 {
-  "name": "@intent/core",
+  "name": "@dev-sixbyfive/intent-core",
   "version": "1.0.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -18,7 +18,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@intent/schemas": "workspace:*",
+    "@dev-sixbyfive/intent-schemas": "workspace:*",
     "gray-matter": "^4.0.3",
     "simple-git": "^3.27.0",
     "zod": "^3.23.8"

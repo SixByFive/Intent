@@ -7,7 +7,7 @@ import {
   nextDecisionId,
   writeDecision,
   type DecisionFrontmatter,
-} from "@intent/core";
+} from "@dev-sixbyfive/intent-core";
 import { printError, printSuccess, printWarning, printHeader, printDim } from "../output.js";
 import { resolveRoot } from "../root.js";
 import chalk from "chalk";

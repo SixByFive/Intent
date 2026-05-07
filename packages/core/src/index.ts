@@ -1,4 +1,4 @@
-export * from "@intent/schemas";
+export * from "@dev-sixbyfive/intent-schemas";
 export * from "./result.js";
 export * from "./paths.js";
 export * from "./frontmatter.js";

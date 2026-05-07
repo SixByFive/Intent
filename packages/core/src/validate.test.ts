@@ -3,7 +3,7 @@ import { validateIntent } from "./validate.js";
 import { writePlan } from "./plans.js";
 import { writeDecision } from "./decisions.js";
 import { writeSystem } from "./systems.js";
-import { type PlanFrontmatter, type DecisionFrontmatter, type SystemFrontmatter } from "@intent/schemas";
+import { type PlanFrontmatter, type DecisionFrontmatter, type SystemFrontmatter } from "@dev-sixbyfive/intent-schemas";
 import { makeTempIntentRepo, cleanup } from "./test-helpers.js";
 
 const dirs: string[] = [];

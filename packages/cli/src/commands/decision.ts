@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import { writeDecision, listDecisions, nextDecisionId, updateDecision, type DecisionFrontmatter } from "@intent/core";
+import { writeDecision, listDecisions, nextDecisionId, updateDecision, type DecisionFrontmatter } from "@dev-sixbyfive/intent-core";
 import { printError, printSuccess, printHeader, printDim } from "../output.js";
 import { resolveRoot } from "../root.js";
 

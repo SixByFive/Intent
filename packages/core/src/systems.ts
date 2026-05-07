@@ -1,6 +1,6 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import { SystemFrontmatterSchema, type SystemFrontmatter, type SystemFile } from "@intent/schemas";
+import { SystemFrontmatterSchema, type SystemFrontmatter, type SystemFile } from "@dev-sixbyfive/intent-schemas";
 import { type Result, ok, err, intentError } from "./result.js";
 import { parseFrontmatter, serializeFrontmatter } from "./frontmatter.js";
 import { systemsDir, systemPath } from "./paths.js";

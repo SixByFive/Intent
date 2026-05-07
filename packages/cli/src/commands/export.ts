@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import { exportContext, type ExportTarget } from "@intent/core";
+import { exportContext, type ExportTarget } from "@dev-sixbyfive/intent-core";
 import { printError, printSuccess, printDim } from "../output.js";
 import { resolveRoot } from "../root.js";
 

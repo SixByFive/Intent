@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { writeDecision, readDecision, listDecisions, nextDecisionId } from "./decisions.js";
-import { type DecisionFrontmatter } from "@intent/schemas";
+import { type DecisionFrontmatter } from "@dev-sixbyfive/intent-schemas";
 import { makeTempIntentRepo, cleanup } from "./test-helpers.js";
 
 const dirs: string[] = [];

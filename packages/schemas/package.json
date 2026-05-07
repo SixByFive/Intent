@@ -1,5 +1,5 @@
 {
-  "name": "@intent/schemas",
+  "name": "@dev-sixbyfive/intent-schemas",
   "version": "1.0.0",
   "type": "module",
   "main": "./dist/index.js",

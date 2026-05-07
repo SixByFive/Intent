@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import { loadContext } from "@intent/core";
+import { loadContext } from "@dev-sixbyfive/intent-core";
 import { printError, printHeader, printDim } from "../output.js";
 import { resolveRoot } from "../root.js";
 

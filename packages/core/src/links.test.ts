@@ -2,7 +2,7 @@ import { describe, it, expect, afterEach } from "vitest";
 import { rebuildLinksIndex, readLinksIndex, findRelatedEntries } from "./links.js";
 import { writePlan } from "./plans.js";
 import { writeDecision } from "./decisions.js";
-import { type PlanFrontmatter, type DecisionFrontmatter, type LinksIndex } from "@intent/schemas";
+import { type PlanFrontmatter, type DecisionFrontmatter, type LinksIndex } from "@dev-sixbyfive/intent-schemas";
 import { makeTempIntentRepo, cleanup } from "./test-helpers.js";
 
 const dirs: string[] = [];

@@ -1,6 +1,6 @@
 import * as path from "node:path";
 import { Command } from "commander";
-import { initIntent, findGitRoot } from "@intent/core";
+import { initIntent, findGitRoot } from "@dev-sixbyfive/intent-core";
 import { printError, printSuccess, printInfo } from "../output.js";
 
 export function makeInitCommand(): Command {

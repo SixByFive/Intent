@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import { writeConstraint, listConstraints, nextConstraintId, type ConstraintFrontmatter } from "@intent/core";
+import { writeConstraint, listConstraints, nextConstraintId, type ConstraintFrontmatter } from "@dev-sixbyfive/intent-core";
 import { printError, printSuccess, printHeader, printDim } from "../output.js";
 import { resolveRoot } from "../root.js";
 import chalk from "chalk";

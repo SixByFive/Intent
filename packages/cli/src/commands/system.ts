@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import { writeSystem, listSystems, type SystemFrontmatter } from "@intent/core";
+import { writeSystem, listSystems, type SystemFrontmatter } from "@dev-sixbyfive/intent-core";
 import { printError, printSuccess, printHeader, printDim } from "../output.js";
 import { resolveRoot } from "../root.js";
 

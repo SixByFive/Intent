@@ -1,5 +1,5 @@
 {
-  "name": "@intent/mcp",
+  "name": "@dev-sixbyfive/intent-mcp",
   "version": "1.0.0",
   "type": "module",
   "main": "./dist/server.js",
@@ -14,8 +14,8 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@intent/core": "workspace:*",
-    "@intent/schemas": "workspace:*",
+    "@dev-sixbyfive/intent-core": "workspace:*",
+    "@dev-sixbyfive/intent-schemas": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.0.0"
   },
   "devDependencies": {

@@ -1,5 +1,5 @@
 import * as fs from "node:fs/promises";
-import { IntentConfigSchema, type IntentConfig } from "@intent/schemas";
+import { IntentConfigSchema, type IntentConfig } from "@dev-sixbyfive/intent-schemas";
 import { type Result, ok, err, intentError } from "./result.js";
 import { configPath, intentDir } from "./paths.js";
 

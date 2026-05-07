@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { writePlan, readPlan, listPlans } from "./plans.js";
-import { type PlanFrontmatter } from "@intent/schemas";
+import { type PlanFrontmatter } from "@dev-sixbyfive/intent-schemas";
 import { makeTempIntentRepo, cleanup } from "./test-helpers.js";
 
 const dirs: string[] = [];

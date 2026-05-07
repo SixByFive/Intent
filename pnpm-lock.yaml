@@ -26,10 +26,10 @@ importers:
 
   packages/cli:
     dependencies:
-      '@intent/core':
+      '@dev-sixbyfive/intent-core':
         specifier: workspace:*
         version: link:../core
-      '@intent/schemas':
+      '@dev-sixbyfive/intent-schemas':
         specifier: workspace:*
         version: link:../schemas
       chalk:
@@ -51,7 +51,7 @@ importers:
 
   packages/core:
     dependencies:
-      '@intent/schemas':
+      '@dev-sixbyfive/intent-schemas':
         specifier: workspace:*
         version: link:../schemas
       gray-matter:
@@ -76,10 +76,10 @@ importers:
 
   packages/mcp:
     dependencies:
-      '@intent/core':
+      '@dev-sixbyfive/intent-core':
         specifier: workspace:*
         version: link:../core
-      '@intent/schemas':
+      '@dev-sixbyfive/intent-schemas':
         specifier: workspace:*
         version: link:../schemas
       '@modelcontextprotocol/sdk':

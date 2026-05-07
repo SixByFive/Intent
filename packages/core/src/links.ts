@@ -1,5 +1,5 @@
 import * as fs from "node:fs/promises";
-import { LinksIndexSchema, type LinksIndex, type LinkEntry } from "@intent/schemas";
+import { LinksIndexSchema, type LinksIndex, type LinkEntry } from "@dev-sixbyfive/intent-schemas";
 import { type Result, ok, err, intentError } from "./result.js";
 import { linksDir, linksIndexPath } from "./paths.js";
 import { listPlans } from "./plans.js";

@@ -4,7 +4,7 @@ import * as path from "node:path";
 import { exportContext, formatContextBlock } from "./export.js";
 import { writePlan } from "./plans.js";
 import { writeDecision } from "./decisions.js";
-import { type PlanFrontmatter, type DecisionFrontmatter } from "@intent/schemas";
+import { type PlanFrontmatter, type DecisionFrontmatter } from "@dev-sixbyfive/intent-schemas";
 import { loadContext } from "./context.js";
 import { makeTempIntentRepo, cleanup } from "./test-helpers.js";
 

@@ -20,7 +20,7 @@ runs:
 
     - name: Install intent CLI
       shell: bash
-      run: npm install -g @intent/cli
+      run: npm install -g @dev-sixbyfive/intent-cli
 
     - name: Fetch base branch
       shell: bash

@@ -1,6 +1,6 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import { PlanFrontmatterSchema, type PlanFrontmatter, type PlanFile } from "@intent/schemas";
+import { PlanFrontmatterSchema, type PlanFrontmatter, type PlanFile } from "@dev-sixbyfive/intent-schemas";
 import { type Result, ok, err, intentError } from "./result.js";
 import { parseFrontmatter, serializeFrontmatter } from "./frontmatter.js";
 import { plansDir, planPath } from "./paths.js";

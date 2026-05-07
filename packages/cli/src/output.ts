@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import { type IntentError } from "@intent/core";
+import { type IntentError } from "@dev-sixbyfive/intent-core";
 
 export function printError(error: IntentError): void {
   console.error(chalk.red(`✗ ${error.message}`));

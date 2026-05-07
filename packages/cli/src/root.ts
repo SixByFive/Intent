@@ -1,4 +1,4 @@
-import { findGitRoot } from "@intent/core";
+import { findGitRoot } from "@dev-sixbyfive/intent-core";
 import { printError } from "./output.js";
 
 export async function resolveRoot(): Promise<string | null> {

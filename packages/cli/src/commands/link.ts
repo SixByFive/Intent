@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import { rebuildLinksIndex } from "@intent/core";
+import { rebuildLinksIndex } from "@dev-sixbyfive/intent-core";
 import { printError, printSuccess } from "../output.js";
 import { resolveRoot } from "../root.js";
 

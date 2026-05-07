@@ -1,4 +1,4 @@
-import { type LinkEntry } from "@intent/schemas";
+import { type LinkEntry } from "@dev-sixbyfive/intent-schemas";
 import { type Result, ok } from "./result.js";
 import { getStagedDiff, getUnstagedDiff, getBaseDiff, type DiffSummary } from "./git.js";
 import { readLinksIndex, findRelatedEntries, rebuildLinksIndex } from "./links.js";

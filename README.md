@@ -42,13 +42,13 @@ git commit -m "Refactor auth middleware for session token compliance"
 ## Installation
 
 ```bash
-npm install -g @intent/cli
+npm install -g @dev-sixbyfive/intent-cli
 ```
 
 Or with pnpm:
 
 ```bash
-pnpm add -g @intent/cli
+pnpm add -g @dev-sixbyfive/intent-cli
 ```
 
 > **Requirements:** Node 18+, must be run inside a git repository.
@@ -410,7 +410,7 @@ Add to `.claude/settings.json` in your project, or to `~/.claude/settings.json` 
   "mcpServers": {
     "intent": {
       "command": "npx",
-      "args": ["@intent/mcp"]
+      "args": ["@dev-sixbyfive/intent-mcp"]
     }
   }
 }
@@ -425,7 +425,7 @@ Add to `.cursor/mcp.json` in your project:
   "mcpServers": {
     "intent": {
       "command": "npx",
-      "args": ["@intent/mcp"]
+      "args": ["@dev-sixbyfive/intent-mcp"]
     }
   }
 }
@@ -440,7 +440,7 @@ mcpServers:
   intent:
     command: npx
     args:
-      - "@intent/mcp"
+      - "@dev-sixbyfive/intent-mcp"
 ```
 
 ### ChatGPT desktop
@@ -452,7 +452,7 @@ Add to your ChatGPT desktop MCP config (`~/Library/Application Support/ChatGPT/m
   "mcpServers": {
     "intent": {
       "command": "npx",
-      "args": ["@intent/mcp"]
+      "args": ["@dev-sixbyfive/intent-mcp"]
     }
   }
 }

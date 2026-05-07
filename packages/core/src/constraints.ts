@@ -1,6 +1,6 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import { ConstraintFrontmatterSchema, type ConstraintFrontmatter, type ConstraintFile } from "@intent/schemas";
+import { ConstraintFrontmatterSchema, type ConstraintFrontmatter, type ConstraintFile } from "@dev-sixbyfive/intent-schemas";
 import { type Result, ok, err, intentError } from "./result.js";
 import { parseFrontmatter, serializeFrontmatter } from "./frontmatter.js";
 import { constraintsDir, constraintPath } from "./paths.js";

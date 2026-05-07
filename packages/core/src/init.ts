@@ -1,6 +1,6 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import { type IntentConfig } from "@intent/schemas";
+import { type IntentConfig } from "@dev-sixbyfive/intent-schemas";
 import { type Result, ok, err, intentError } from "./result.js";
 import { writeConfig, isInitialized } from "./config.js";
 import { intentDir, plansDir, decisionsDir, systemsDir, constraintsDir, linksDir } from "./paths.js";

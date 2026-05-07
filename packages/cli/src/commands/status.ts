@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import { getStatus } from "@intent/core";
+import { getStatus } from "@dev-sixbyfive/intent-core";
 import { printError, printHeader, printDim, printSuccess, printWarning } from "../output.js";
 import { resolveRoot } from "../root.js";
 import chalk from "chalk";

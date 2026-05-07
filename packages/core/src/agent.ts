@@ -1,4 +1,4 @@
-import { type PlanFile, type DecisionFile, type SystemFile } from "@intent/schemas";
+import { type PlanFile, type DecisionFile, type SystemFile } from "@dev-sixbyfive/intent-schemas";
 import { type Result, ok } from "./result.js";
 import { loadContext, type FilteredContext } from "./context.js";
 import { reviewDiff, type ReviewDiffResult } from "./reviewDiff.js";

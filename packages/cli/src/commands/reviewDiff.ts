@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import { reviewDiff } from "@intent/core";
+import { reviewDiff } from "@dev-sixbyfive/intent-core";
 import { printError, printHeader, printDim, printInfo } from "../output.js";
 import { resolveRoot } from "../root.js";
 import chalk from "chalk";

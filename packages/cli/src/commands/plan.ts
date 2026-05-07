@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import { writePlan, listPlans, updatePlan, type PlanFrontmatter } from "@intent/core";
+import { writePlan, listPlans, updatePlan, type PlanFrontmatter } from "@dev-sixbyfive/intent-core";
 import { printError, printSuccess, printHeader, printDim } from "../output.js";
 import { resolveRoot } from "../root.js";
 
