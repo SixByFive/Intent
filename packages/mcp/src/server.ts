@@ -15,6 +15,8 @@ import {
   listSystems,
   exportContext,
   formatContextBlock,
+  validateIntent,
+  getStatus,
   type ExportTarget,
 } from "@intent/core";
 
@@ -81,6 +83,26 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
     {
       name: "intent_rebuild_links",
       description: "Rebuild the .intent/links/index.json index",
+      inputSchema: {
+        type: "object",
+        properties: {
+          cwd: { type: "string", description: "Working directory" },
+        },
+      },
+    },
+    {
+      name: "intent_validate",
+      description: "Validate all .intent/ files and check referential integrity. Returns issues grouped by file.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          cwd: { type: "string", description: "Working directory" },
+        },
+      },
+    },
+    {
+      name: "intent_status",
+      description: "Get a health overview of the .intent/ directory: plan counts, active/draft plans, links index state, and validation summary.",
       inputSchema: {
         type: "object",
         properties: {
@@ -167,6 +189,22 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       return { content: [{ type: "text", text: `Error: ${result.error.message}` }], isError: true };
     }
     return { content: [{ type: "text", text: `Rebuilt index with ${result.value.entries.length} entries` }] };
+  }
+
+  if (name === "intent_validate") {
+    const result = await validateIntent(root);
+    if (!result.ok) {
+      return { content: [{ type: "text", text: `Error: ${result.error.message}` }], isError: true };
+    }
+    return { content: [{ type: "text", text: JSON.stringify(result.value, null, 2) }] };
+  }
+
+  if (name === "intent_status") {
+    const result = await getStatus(root);
+    if (!result.ok) {
+      return { content: [{ type: "text", text: `Error: ${result.error.message}` }], isError: true };
+    }
+    return { content: [{ type: "text", text: JSON.stringify(result.value, null, 2) }] };
   }
 
   if (name === "intent_export") {

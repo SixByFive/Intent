@@ -8,6 +8,8 @@ import { makeContextCommand } from "./commands/context.js";
 import { makeReviewDiffCommand } from "./commands/reviewDiff.js";
 import { makeLinkCommand } from "./commands/link.js";
 import { makeExportCommand } from "./commands/export.js";
+import { makeValidateCommand } from "./commands/validate.js";
+import { makeStatusCommand } from "./commands/status.js";
 
 const program = new Command();
 
@@ -24,6 +26,8 @@ program.addCommand(makeContextCommand());
 program.addCommand(makeReviewDiffCommand());
 program.addCommand(makeLinkCommand());
 program.addCommand(makeExportCommand());
+program.addCommand(makeValidateCommand());
+program.addCommand(makeStatusCommand());
 
 program.parseAsync(process.argv).catch((err: unknown) => {
   console.error(err);

@@ -12,3 +12,5 @@ export * from "./git.js";
 export * from "./context.js";
 export * from "./reviewDiff.js";
 export * from "./export.js";
+export * from "./validate.js";
+export * from "./status.js";
