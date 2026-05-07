@@ -42,16 +42,29 @@ git commit -m "Refactor auth middleware for session token compliance"
 ## Installation
 
 ```bash
-npm install -g @dev-sixbyfive/intent-cli
+npm install -g @dev-sixbyfive/intent
 ```
+
+This installs both the `intent` CLI and the `intent-mcp` MCP server in one go.
 
 Or with pnpm:
 
 ```bash
-pnpm add -g @dev-sixbyfive/intent-cli
+pnpm add -g @dev-sixbyfive/intent
 ```
 
 > **Requirements:** Node 18+, must be run inside a git repository.
+
+### Install individual packages
+
+If you only need one piece:
+
+```bash
+npm install -g @dev-sixbyfive/intent-cli   # CLI only
+npm install -g @dev-sixbyfive/intent-mcp   # MCP server only
+```
+
+Use `@dev-sixbyfive/intent-core` or `@dev-sixbyfive/intent-schemas` if you're building tooling on top of the `.intent/` format.
 
 ---
 
@@ -193,6 +206,16 @@ intent plan create subscriptions --system marketplace --status active
 
 Opens a Markdown file at `.intent/plans/<name>.md` with a structured template.
 
+### `intent plan update <name>`
+
+Update a plan's status or title without editing the file manually.
+
+```bash
+intent plan update auth-rewrite --status archived
+intent plan update auth-rewrite --title "Auth middleware rewrite (phase 2)"
+intent plan update auth-rewrite --status active --title "New title"
+```
+
 ### `intent plan list`
 
 List all plans.
@@ -213,12 +236,40 @@ intent decision add --title "Use Postgres for the event store"
 intent decision add --title "Use Postgres for the event store" --system events
 ```
 
+### `intent decision update <id>`
+
+Update a decision's status or title.
+
+```bash
+intent decision update DEC-0001 --status superseded
+intent decision update DEC-0001 --title "Use short-lived JWTs (revised)"
+```
+
 ### `intent decision list`
 
 List all decisions.
 
 ```bash
 intent decision list
+```
+
+---
+
+### `intent constraint add`
+
+Record a hard or soft constraint. IDs are auto-incremented (`CON-0001`, `CON-0002`, …).
+
+```bash
+intent constraint add --title "No external databases in the core package" --severity hard
+intent constraint add --title "Prefer open source dependencies" --severity soft --system core
+```
+
+### `intent constraint list`
+
+List all constraints.
+
+```bash
+intent constraint list
 ```
 
 ---
@@ -563,6 +614,7 @@ Add to `.claude/settings.json` to automatically inject relevant context before e
 
 ```
 packages/
+  intent/    — Meta-package: installs CLI + MCP server in one go (@dev-sixbyfive/intent)
   schemas/   — Zod schemas and TypeScript types for the .intent/ format
   core/      — All .intent/ file I/O, parsing, and git integration
   cli/       — Commander-based CLI (thin layer — no business logic)
@@ -580,8 +632,8 @@ pnpm install
 pnpm build
 
 # Link the CLI globally
-cd packages/cli
-pnpm link --global
+cd packages/cli && pnpm link --global
+cd ../mcp && pnpm link --global
 ```
 
 ### Development
