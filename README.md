@@ -18,6 +18,7 @@ Git already tracks *what* changed. Intent tracks *why* it changed.
 - [Export commands](#intent-export-target)
 - [GitHub Action](#github-action)
 - [MCP server](#mcp-server)
+- [Agent workflow](#agent-workflow)
 - [Monorepo structure](#monorepo-structure)
 - [Contributing](#contributing)
 
@@ -278,6 +279,35 @@ The links index is auto-generated and excluded from git (via `.intent/.gitignore
 
 ---
 
+### `intent validate`
+
+Validate all `.intent/` files and check referential integrity across plans, decisions, and systems.
+
+```bash
+intent validate               # check everything
+intent validate --errors-only # suppress warnings, show errors only
+```
+
+Reports broken cross-references (plan references a decision that doesn't exist, etc.) as errors, and draft plans as warnings. Exits 0 if valid, 1 if there are errors.
+
+---
+
+### `intent status`
+
+Show a health overview of the `.intent/` directory.
+
+```bash
+intent status
+```
+
+Displays:
+- Plan/decision/system counts
+- Active and draft plans with their system assignments
+- Links index freshness
+- Validation summary (errors and warnings, with a pointer to `intent validate` for details)
+
+---
+
 ### `intent export <target>`
 
 Export intent context as a formatted markdown block into the config file that your editor or AI tool reads automatically.
@@ -440,6 +470,10 @@ Add to your ChatGPT desktop MCP config (`~/Library/Application Support/ChatGPT/m
 | `intent_list_decisions` | List all architectural decisions. |
 | `intent_list_systems` | List all system definitions. |
 | `intent_rebuild_links` | Rebuild the links index. |
+| `intent_validate` | Validate all `.intent/` files and check referential integrity. |
+| `intent_status` | Health overview: counts, active/draft plans, links index state, validation summary. |
+| `intent_agent_prepare` | Keyword-score plans/decisions/systems against a task; return focused context bundle. |
+| `intent_agent_review` | Review diff coverage and validation; returns checklist and `suggestDecision` signal. |
 | `intent_export` | Export context as markdown, or write to `claude`/`cursor`/`copilot` target files. |
 
 ### Example agent workflow
@@ -447,15 +481,81 @@ Add to your ChatGPT desktop MCP config (`~/Library/Application Support/ChatGPT/m
 ```
 User: Implement the vendor listing limit
 
-Agent calls: intent_context → sees plan-subscriptions is active
-Agent calls: intent_review_diff → sees DEC-0001 applies to auth changes
-Agent now knows: free users → 5 listings, vendor users → unlimited
+Agent calls: intent_agent_prepare "implement vendor listing limit"
+  → scores plans/decisions by relevance
+  → returns plan-subscriptions, DEC-0007 (listing constraints), sys-marketplace
+
 Agent implements accordingly, without asking the user to re-explain the plan
+
+Agent calls: intent_agent_review (after making changes)
+  → checklist: changes covered by plan-subscriptions ✓
+  → validation: all files valid ✓
+  → suggestDecision: false (changes were linked)
 ```
 
 ### Tools without MCP support
 
 For tools that don't support MCP (web interfaces, older IDE extensions), use `intent export` to generate a static context file instead. See the [CLI reference](#intent-export-target) above.
+
+---
+
+## Agent workflow
+
+Intent has two commands built specifically for AI agent workflows — loading focused context before a task, and reviewing alignment after.
+
+### `intent agent prepare [task]`
+
+Get intent context relevant to a task. Keyword-scores all plans, decisions, and systems against the task description, pulls in cross-referenced items transitively, and falls back to full context when nothing matches or no task is given.
+
+```bash
+intent agent prepare "add OAuth login with GitHub"
+intent agent prepare "refactor the payment module"
+intent agent prepare          # no task → full context
+intent agent prepare "..." --hook   # JSON output for hook injection
+```
+
+The `--hook` flag emits JSON on stdout — useful for Claude Code hooks that need to inject context into a system prompt before the agent starts working.
+
+### `intent agent review`
+
+Review the current diff against intent and validate all files. Produces a structured checklist and flags whether unlinked changes suggest a new decision record is needed.
+
+```bash
+intent agent review                       # staged changes
+intent agent review --base origin/main    # diff against a branch
+intent agent review --unstaged            # unstaged changes
+intent agent review --hook                # JSON output + exit code for CI/hooks
+```
+
+In interactive (non-hook) mode, if changed files have no linked intent entries, you're prompted:
+
+```
+Did you make architectural decisions not captured above? [y/N]
+```
+
+Answering `y` walks through a short Q&A (title, context, decision, consequences) and writes a draft `DEC-XXXX.md` file ready for you to refine.
+
+### Wiring into Claude Code hooks
+
+Add to `.claude/settings.json` to automatically inject relevant context before every tool call:
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "intent agent prepare --hook"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
 
 ---
 

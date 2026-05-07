@@ -2,9 +2,9 @@
 id: plan-initial-build
 title: Initial monorepo build
 type: plan
-status: active
+status: archived
 created: '2026-05-07T18:35:37.570Z'
-updated: '2026-05-07T18:35:37.570Z'
+updated: '2026-05-07T19:00:00.000Z'
 decisions:
   - DEC-0001
   - DEC-0002
@@ -37,8 +37,23 @@ This is the foundation everything else builds on. Until the core format, CLI, an
 
 ## Status
 
-Substantially complete. Remaining items before closing:
-- `intent validate` command
-- `intent status` command
-- `intent agent prepare` / `intent agent review` commands
-- npm publish prep (`publishConfig`, `files` fields, shebang verification)
+**Complete — archived.**
+
+All items shipped:
+
+- ✅ Four-package monorepo (schemas, core, cli, mcp)
+- ✅ Hybrid frontmatter markdown format with Zod schemas
+- ✅ `Result<T, IntentError>` pattern throughout core
+- ✅ Plans, decisions, systems, constraints CRUD
+- ✅ Links index and `intent review-diff`
+- ✅ `intent export` to CLAUDE.md / .cursor/rules / copilot-instructions.md (idempotent)
+- ✅ MCP server with 11 tools
+- ✅ GitHub Actions CI (pnpm build + test)
+- ✅ GitHub composite action for PR intent comments
+- ✅ Full test suite (52 tests passing)
+- ✅ `intent validate` — referential integrity checks
+- ✅ `intent status` — health overview
+- ✅ `intent agent prepare` / `intent agent review` — agent workflow helpers
+- ✅ Repo bootstrapped with its own `.intent/` files
+
+Remaining work tracked in separate plans: `plan-npm-publish`.
