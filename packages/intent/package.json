@@ -1,0 +1,40 @@
+{
+  "name": "@dev-sixbyfive/intent",
+  "version": "1.0.0",
+  "description": "Git-native reasoning layer — installs the intent CLI and MCP server in one go",
+  "type": "module",
+  "bin": {
+    "intent": "./bin/intent.js",
+    "intent-mcp": "./bin/mcp.js"
+  },
+  "scripts": {
+    "build": "echo 'no build step'",
+    "test": "echo 'no tests'"
+  },
+  "dependencies": {
+    "@dev-sixbyfive/intent-cli": "workspace:*",
+    "@dev-sixbyfive/intent-mcp": "workspace:*"
+  },
+  "files": [
+    "bin",
+    "README.md"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SixByFive/intent"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "intent",
+    "adr",
+    "architecture",
+    "cli",
+    "mcp",
+    "ai",
+    "agents",
+    "decisions"
+  ]
+}
