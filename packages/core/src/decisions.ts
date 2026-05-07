@@ -52,6 +52,17 @@ export async function nextDecisionId(root: string): Promise<Result<string>> {
   return ok(`DEC-${String(next).padStart(4, "0")}`);
 }
 
+export async function updateDecision(
+  root: string,
+  id: string,
+  updates: Partial<Pick<DecisionFrontmatter, "title" | "status" | "system" | "tags">>,
+): Promise<Result<string>> {
+  const readResult = await readDecision(root, id);
+  if (!readResult.ok) return readResult;
+  const updated: DecisionFrontmatter = { ...readResult.value.frontmatter, ...updates, updated: new Date().toISOString() };
+  return writeDecision(root, updated, readResult.value.body);
+}
+
 export async function writeDecision(root: string, frontmatter: DecisionFrontmatter, body: string): Promise<Result<string>> {
   const fp = decisionPath(root, frontmatter.id);
   const content = serializeFrontmatter(frontmatter as unknown as Record<string, unknown>, body);

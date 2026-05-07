@@ -18,7 +18,8 @@ export type IntentErrorCode =
   | "VALIDATION_ERROR"
   | "WRITE_ERROR"
   | "GIT_ERROR"
-  | "INVALID_ID";
+  | "INVALID_ID"
+  | "INVALID_INPUT";
 
 export interface IntentError {
   code: IntentErrorCode;

@@ -40,6 +40,17 @@ export async function listPlans(root: string): Promise<Result<PlanFile[]>> {
   return ok(plans);
 }
 
+export async function updatePlan(
+  root: string,
+  name: string,
+  updates: Partial<Pick<PlanFrontmatter, "title" | "status" | "system" | "tags">>,
+): Promise<Result<string>> {
+  const readResult = await readPlan(root, name);
+  if (!readResult.ok) return readResult;
+  const updated: PlanFrontmatter = { ...readResult.value.frontmatter, ...updates, updated: new Date().toISOString() };
+  return writePlan(root, updated, readResult.value.body);
+}
+
 export async function writePlan(root: string, frontmatter: PlanFrontmatter, body: string): Promise<Result<string>> {
   const name = frontmatter.id.replace(/^plan-/, "");
   const fp = planPath(root, name);

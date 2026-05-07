@@ -38,6 +38,20 @@ describe("formatContextBlock", () => {
     expect(block).toContain("<!-- intent-context:end -->");
   });
 
+  it("includes the agent instructions section", async () => {
+    const dir = await makeTempIntentRepo();
+    dirs.push(dir);
+
+    const ctxResult = await loadContext(dir);
+    expect(ctxResult.ok).toBe(true);
+    if (!ctxResult.ok) return;
+
+    const block = formatContextBlock(ctxResult.value);
+    expect(block).toContain("### Agent Instructions");
+    expect(block).toContain("intent agent prepare");
+    expect(block).toContain("intent agent review");
+  });
+
   it("includes plan and decision titles", async () => {
     const dir = await makeTempIntentRepo();
     dirs.push(dir);

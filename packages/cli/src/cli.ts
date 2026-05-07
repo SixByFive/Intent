@@ -11,6 +11,7 @@ import { makeExportCommand } from "./commands/export.js";
 import { makeValidateCommand } from "./commands/validate.js";
 import { makeStatusCommand } from "./commands/status.js";
 import { makeAgentCommand } from "./commands/agent.js";
+import { makeConstraintCommand } from "./commands/constraint.js";
 
 const program = new Command();
 
@@ -30,6 +31,7 @@ program.addCommand(makeExportCommand());
 program.addCommand(makeValidateCommand());
 program.addCommand(makeStatusCommand());
 program.addCommand(makeAgentCommand());
+program.addCommand(makeConstraintCommand());
 
 program.parseAsync(process.argv).catch((err: unknown) => {
   console.error(err);

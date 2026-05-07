@@ -4,7 +4,7 @@ title: Initial monorepo build
 type: plan
 status: archived
 created: '2026-05-07T18:35:37.570Z'
-updated: '2026-05-07T19:00:00.000Z'
+updated: '2026-05-07T19:21:06.260Z'
 decisions:
   - DEC-0001
   - DEC-0002
@@ -18,7 +18,6 @@ tags:
   - cli
   - mcp
 ---
-
 ## Goal
 
 Ship a working monorepo with all four packages (schemas, core, cli, mcp), a full test suite, GitHub Actions CI, export commands, and MCP integrations for Claude, Cursor, Codex, and ChatGPT.

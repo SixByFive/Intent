@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import { writePlan, listPlans, type PlanFrontmatter } from "@intent/core";
+import { writePlan, listPlans, updatePlan, type PlanFrontmatter } from "@intent/core";
 import { printError, printSuccess, printHeader, printDim } from "../output.js";
 import { resolveRoot } from "../root.js";
 
@@ -43,6 +43,35 @@ export function makePlanCommand(): Command {
       }
 
       printSuccess(`Created plan: ${result.value}`);
+    });
+
+  cmd
+    .command("update <name>")
+    .description("Update a plan's status or title")
+    .option("--status <status>", "New status: draft | active | archived | superseded")
+    .option("--title <title>", "New title")
+    .action(async (name: string, opts: { status?: string; title?: string }) => {
+      const root = await resolveRoot();
+      if (root === null) { process.exit(1); return; }
+
+      if (!opts.status && !opts.title) {
+        printError({ code: "INVALID_INPUT", message: "Provide at least --status or --title" });
+        process.exit(1);
+        return;
+      }
+
+      const updates: Partial<PlanFrontmatter> = {};
+      if (opts.status) updates.status = opts.status as PlanFrontmatter["status"];
+      if (opts.title) updates.title = opts.title;
+
+      const result = await updatePlan(root, name, updates);
+      if (!result.ok) {
+        printError(result.error);
+        process.exit(1);
+        return;
+      }
+
+      printSuccess(`Updated plan: ${result.value}`);
     });
 
   cmd
