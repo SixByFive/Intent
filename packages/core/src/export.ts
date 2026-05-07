@@ -21,6 +21,19 @@ export function formatContextBlock(ctx: FilteredContext): string {
   if (ctx.system) lines.push(`*System: ${ctx.system}*`);
   lines.push("");
 
+  // Agent instructions — always included so any AI reading this file knows the workflow
+  lines.push("### Agent Instructions");
+  lines.push("");
+  lines.push("This project uses [Intent](https://github.com/SixByFive/intent) to track the *why* behind code.");
+  lines.push("When `.intent/` is present, follow these rules:");
+  lines.push("");
+  lines.push("1. **Before starting a task** — call `intent agent prepare \"<task>\"` or the `intent_agent_prepare` MCP tool to load relevant plans and decisions.");
+  lines.push("2. **After making changes** — call `intent agent review` or `intent_agent_review` to verify alignment and catch broken references.");
+  lines.push("3. **If you made an architectural decision** not covered by an existing record, create one: `intent decision add` or let `intent agent review` scaffold it interactively.");
+  lines.push("4. **If a plan's work is complete**, update its `status` to `archived` in the frontmatter.");
+  lines.push("5. **Commit `.intent/` files** alongside the code changes they describe.");
+  lines.push("");
+
   if (ctx.plans.length > 0) {
     lines.push("### Active Plans");
     lines.push("");
