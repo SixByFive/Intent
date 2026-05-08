@@ -35,6 +35,6 @@ Until the packages are on npm, the GitHub Action composite and all MCP config sn
 - [x] Add `repository`, `license`, `keywords` fields to all package.json files
 - [x] Verify shebang on `packages/cli/dist/cli.js` after build — confirmed present
 - [x] Dry-run with `pnpm publish --dry-run` for all four packages — all pass, tarballs clean
-- [ ] Create npm org `@intent` or confirm scope availability
-- [ ] Tag `v0.1.0` and publish
-- [ ] Update README install instructions from source to npm (currently pointing at npm already)
+- [x] Create npm org `@intent` or confirm scope availability
+- [x] Tag `v0.1.0` and publish
+- [x] Update README install instructions from source to npm (currently pointing at npm already)
