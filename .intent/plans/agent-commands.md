@@ -2,7 +2,7 @@
 id: plan-agent-commands
 title: Agent workflow commands
 type: plan
-status: active
+status: archived
 created: '2026-05-07T18:35:38.035Z'
 updated: '2026-05-07T19:00:00.000Z'
 decisions:

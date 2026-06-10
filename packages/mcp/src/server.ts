@@ -13,17 +13,19 @@ import {
   listPlans,
   listDecisions,
   listSystems,
+  listConstraints,
   exportContext,
   formatContextBlock,
   validateIntent,
   getStatus,
   prepareAgentContext,
   reviewAgent,
+  searchIntent,
   type ExportTarget,
 } from "@dev-sixbyfive/intent-core";
 
 const server = new Server(
-  { name: "intent", version: "0.0.1" },
+  { name: "intent", version: "1.1.0" },
   { capabilities: { tools: {} } },
 );
 
@@ -31,7 +33,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: [
     {
       name: "intent_context",
-      description: "Get all intent context (plans, decisions, systems) for the project. Optionally filter by system.",
+      description: "Get all intent context (plans, decisions, systems, constraints) for the project. Optionally filter by system.",
       inputSchema: {
         type: "object",
         properties: {
@@ -58,6 +60,9 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       inputSchema: {
         type: "object",
         properties: {
+          status: { type: "string", description: "Filter by status: draft | active | archived | superseded" },
+          system: { type: "string", description: "Filter by system" },
+          tag: { type: "string", description: "Filter by tag" },
           cwd: { type: "string", description: "Working directory" },
         },
       },
@@ -68,6 +73,9 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       inputSchema: {
         type: "object",
         properties: {
+          status: { type: "string", description: "Filter by status: draft | active | archived | superseded" },
+          system: { type: "string", description: "Filter by system" },
+          tag: { type: "string", description: "Filter by tag" },
           cwd: { type: "string", description: "Working directory" },
         },
       },
@@ -78,6 +86,20 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       inputSchema: {
         type: "object",
         properties: {
+          tag: { type: "string", description: "Filter by tag" },
+          cwd: { type: "string", description: "Working directory" },
+        },
+      },
+    },
+    {
+      name: "intent_list_constraints",
+      description: "List all constraints in the project",
+      inputSchema: {
+        type: "object",
+        properties: {
+          severity: { type: "string", description: "Filter by severity: hard | soft" },
+          system: { type: "string", description: "Filter by system" },
+          tag: { type: "string", description: "Filter by tag" },
           cwd: { type: "string", description: "Working directory" },
         },
       },
@@ -114,7 +136,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
     },
     {
       name: "intent_agent_prepare",
-      description: "Get intent context relevant to a task. Scores plans/decisions/systems by keyword match against the task description, pulls in cross-referenced items transitively. Falls back to full context when nothing matches.",
+      description: "Get intent context relevant to a task. Scores plans/decisions/systems/constraints by keyword match against the task description, pulls in cross-referenced items transitively. Falls back to full context when nothing matches.",
       inputSchema: {
         type: "object",
         properties: {
@@ -136,14 +158,26 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       },
     },
     {
+      name: "intent_search",
+      description: "Full-text search across all intent files (plans, decisions, systems, constraints). Returns matches ranked by relevance with excerpts.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          query: { type: "string", description: "Search terms" },
+          cwd: { type: "string", description: "Working directory" },
+        },
+        required: ["query"],
+      },
+    },
+    {
       name: "intent_export",
-      description: "Export intent context as a formatted markdown block, or write it to a target file (claude, cursor, copilot).",
+      description: "Export intent context as a formatted block, or write it to a target file.",
       inputSchema: {
         type: "object",
         properties: {
           target: {
             type: "string",
-            enum: ["claude", "cursor", "copilot", "markdown"],
+            enum: ["claude", "cursor", "copilot", "windsurf", "html", "json", "markdown"],
             description: "Export target. Use 'markdown' to return the block as text without writing a file.",
           },
           system: { type: "string", description: "Filter to a specific system" },
@@ -189,7 +223,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     if (!result.ok) {
       return { content: [{ type: "text", text: `Error: ${result.error.message}` }], isError: true };
     }
-    return { content: [{ type: "text", text: JSON.stringify(result.value, null, 2) }] };
+    let plans = result.value;
+    const status = args?.["status"] as string | undefined;
+    const system = args?.["system"] as string | undefined;
+    const tag = args?.["tag"] as string | undefined;
+    if (status) plans = plans.filter((p) => p.frontmatter.status === status);
+    if (system) plans = plans.filter((p) => p.frontmatter.system === system);
+    if (tag) plans = plans.filter((p) => p.frontmatter.tags.includes(tag));
+    return { content: [{ type: "text", text: JSON.stringify(plans, null, 2) }] };
   }
 
   if (name === "intent_list_decisions") {
@@ -197,7 +238,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     if (!result.ok) {
       return { content: [{ type: "text", text: `Error: ${result.error.message}` }], isError: true };
     }
-    return { content: [{ type: "text", text: JSON.stringify(result.value, null, 2) }] };
+    let decisions = result.value;
+    const status = args?.["status"] as string | undefined;
+    const system = args?.["system"] as string | undefined;
+    const tag = args?.["tag"] as string | undefined;
+    if (status) decisions = decisions.filter((d) => d.frontmatter.status === status);
+    if (system) decisions = decisions.filter((d) => d.frontmatter.system === system);
+    if (tag) decisions = decisions.filter((d) => d.frontmatter.tags.includes(tag));
+    return { content: [{ type: "text", text: JSON.stringify(decisions, null, 2) }] };
   }
 
   if (name === "intent_list_systems") {
@@ -205,7 +253,25 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     if (!result.ok) {
       return { content: [{ type: "text", text: `Error: ${result.error.message}` }], isError: true };
     }
-    return { content: [{ type: "text", text: JSON.stringify(result.value, null, 2) }] };
+    let systems = result.value;
+    const tag = args?.["tag"] as string | undefined;
+    if (tag) systems = systems.filter((s) => s.frontmatter.tags.includes(tag));
+    return { content: [{ type: "text", text: JSON.stringify(systems, null, 2) }] };
+  }
+
+  if (name === "intent_list_constraints") {
+    const result = await listConstraints(root);
+    if (!result.ok) {
+      return { content: [{ type: "text", text: `Error: ${result.error.message}` }], isError: true };
+    }
+    let constraints = result.value;
+    const severity = args?.["severity"] as string | undefined;
+    const system = args?.["system"] as string | undefined;
+    const tag = args?.["tag"] as string | undefined;
+    if (severity) constraints = constraints.filter((c) => c.frontmatter.severity === severity);
+    if (system) constraints = constraints.filter((c) => c.frontmatter.system === system);
+    if (tag) constraints = constraints.filter((c) => c.frontmatter.tags.includes(tag));
+    return { content: [{ type: "text", text: JSON.stringify(constraints, null, 2) }] };
   }
 
   if (name === "intent_rebuild_links") {
@@ -233,7 +299,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   }
 
   if (name === "intent_agent_prepare") {
-    const task = args?.["task"] as string | undefined ?? null;
+    const task = (args?.["task"] as string | undefined) ?? null;
     const result = await prepareAgentContext(root, task);
     if (!result.ok) {
       return { content: [{ type: "text", text: `Error: ${result.error.message}` }], isError: true };
@@ -247,6 +313,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           plans: r.plans.map((p) => ({ id: p.frontmatter.id, title: p.frontmatter.title, status: p.frontmatter.status })),
           decisions: r.decisions.map((d) => ({ id: d.frontmatter.id, title: d.frontmatter.title })),
           systems: r.systems.map((s) => ({ id: s.frontmatter.id, title: s.frontmatter.title })),
+          constraints: r.constraints.map((c) => ({ id: c.frontmatter.id, title: c.frontmatter.title, severity: c.frontmatter.severity })),
           formatted: r.formatted,
         }, null, 2),
       }],
@@ -257,6 +324,15 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const staged = (args?.["staged"] as boolean | undefined) ?? true;
     const base = args?.["base"] as string | undefined;
     const result = await reviewAgent(root, staged, base);
+    if (!result.ok) {
+      return { content: [{ type: "text", text: `Error: ${result.error.message}` }], isError: true };
+    }
+    return { content: [{ type: "text", text: JSON.stringify(result.value, null, 2) }] };
+  }
+
+  if (name === "intent_search") {
+    const query = args?.["query"] as string;
+    const result = await searchIntent(root, query);
     if (!result.ok) {
       return { content: [{ type: "text", text: `Error: ${result.error.message}` }], isError: true };
     }
@@ -275,7 +351,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       return { content: [{ type: "text", text: formatContextBlock(ctxResult.value) }] };
     }
 
-    const validTargets: ExportTarget[] = ["claude", "cursor", "copilot"];
+    const validTargets: ExportTarget[] = ["claude", "cursor", "copilot", "windsurf", "html", "json"];
     if (!validTargets.includes(target as ExportTarget)) {
       return { content: [{ type: "text", text: `Unknown target: ${target}` }], isError: true };
     }

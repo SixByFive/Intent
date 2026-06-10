@@ -1,8 +1,9 @@
-import { type PlanFile, type DecisionFile, type SystemFile } from "@dev-sixbyfive/intent-schemas";
+import { type PlanFile, type DecisionFile, type SystemFile, type ConstraintFile } from "@dev-sixbyfive/intent-schemas";
 import { type Result, ok } from "./result.js";
 import { listPlans } from "./plans.js";
 import { listDecisions } from "./decisions.js";
 import { listSystems } from "./systems.js";
+import { listConstraints } from "./constraints.js";
 import { readConfig } from "./config.js";
 
 export interface IntentContext {
@@ -10,6 +11,7 @@ export interface IntentContext {
   plans: PlanFile[];
   decisions: DecisionFile[];
   systems: SystemFile[];
+  constraints: ConstraintFile[];
 }
 
 export interface FilteredContext extends IntentContext {
@@ -17,11 +19,12 @@ export interface FilteredContext extends IntentContext {
 }
 
 export async function loadContext(root: string, systemFilter?: string): Promise<Result<FilteredContext>> {
-  const [configResult, plansResult, decisionsResult, systemsResult] = await Promise.all([
+  const [configResult, plansResult, decisionsResult, systemsResult, constraintsResult] = await Promise.all([
     readConfig(root),
     listPlans(root),
     listDecisions(root),
     listSystems(root),
+    listConstraints(root),
   ]);
 
   if (!configResult.ok) return configResult;
@@ -29,11 +32,13 @@ export async function loadContext(root: string, systemFilter?: string): Promise<
   let plans = plansResult.ok ? plansResult.value : [];
   let decisions = decisionsResult.ok ? decisionsResult.value : [];
   let systems = systemsResult.ok ? systemsResult.value : [];
+  let constraints = constraintsResult.ok ? constraintsResult.value : [];
 
   if (systemFilter) {
     plans = plans.filter((p) => p.frontmatter.system === systemFilter || p.frontmatter.tags.includes(systemFilter));
     decisions = decisions.filter((d) => d.frontmatter.system === systemFilter || d.frontmatter.tags.includes(systemFilter));
     systems = systems.filter((s) => s.frontmatter.id === `sys-${systemFilter}` || s.frontmatter.title.toLowerCase() === systemFilter.toLowerCase());
+    constraints = constraints.filter((c) => c.frontmatter.system === systemFilter || c.frontmatter.tags.includes(systemFilter));
   }
 
   const ctx: FilteredContext = {
@@ -44,6 +49,7 @@ export async function loadContext(root: string, systemFilter?: string): Promise<
     plans,
     decisions,
     systems,
+    constraints,
   };
   if (systemFilter !== undefined) ctx.system = systemFilter;
   return ok(ctx);

@@ -2,7 +2,7 @@
 id: plan-npm-publish
 title: Publish to npm
 type: plan
-status: active
+status: archived
 created: '2026-05-07T18:35:37.803Z'
 updated: '2026-05-07T19:30:00.000Z'
 decisions: []

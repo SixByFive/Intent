@@ -16,6 +16,7 @@ Git already tracks *what* changed. Intent tracks *why* it changed.
 - [The .intent/ format](#the-intent-format)
 - [CLI reference](#cli-reference)
 - [Export commands](#intent-export-target)
+- [Search](#intent-search-query)
 - [GitHub Action](#github-action)
 - [MCP server](#mcp-server)
 - [Agent workflow](#agent-workflow)
@@ -167,6 +168,30 @@ Short-lived JWTs (15 min) with httpOnly refresh tokens.
 - All services need to validate JWTs independently
 ```
 
+### Constraint file
+
+```markdown
+---
+id: CON-0001
+title: All tokens must expire within 15 minutes
+type: constraint
+severity: hard
+created: 2024-01-15T09:00:00Z
+updated: 2024-01-15T09:00:00Z
+system: auth
+tags: [security, compliance]
+---
+
+## Description
+
+No token issued by the auth service may have a lifetime longer than 15 minutes.
+Refresh tokens are exempt but must be stored in httpOnly cookies only.
+
+## Rationale
+
+Required by the Q2 compliance audit. Non-negotiable until legal sign-off.
+```
+
 ### Statuses
 
 | Type | Statuses |
@@ -174,7 +199,7 @@ Short-lived JWTs (15 min) with httpOnly refresh tokens.
 | Plan | `draft`, `active`, `archived`, `superseded` |
 | Decision | `draft`, `active`, `archived`, `superseded` |
 | System | *(no status — systems are always active)* |
-| Constraint | `hard`, `soft` (severity, not status) |
+| Constraint | `severity: hard` or `soft` — hard constraints are non-negotiable, soft are strong preferences |
 
 ---
 
@@ -208,20 +233,31 @@ Opens a Markdown file at `.intent/plans/<name>.md` with a structured template.
 
 ### `intent plan update <name>`
 
-Update a plan's status or title without editing the file manually.
+Update a plan's status, title, or system without editing the file manually.
 
 ```bash
 intent plan update auth-rewrite --status archived
 intent plan update auth-rewrite --title "Auth middleware rewrite (phase 2)"
-intent plan update auth-rewrite --status active --title "New title"
+intent plan update auth-rewrite --status active --title "New title" --system auth
+```
+
+### `intent plan show <name>`
+
+Show full details of a plan, including all metadata and the markdown body.
+
+```bash
+intent plan show auth-rewrite
 ```
 
 ### `intent plan list`
 
-List all plans.
+List all plans, optionally filtered.
 
 ```bash
 intent plan list
+intent plan list --status active
+intent plan list --system marketplace
+intent plan list --tag security
 ```
 
 ---
@@ -238,19 +274,31 @@ intent decision add --title "Use Postgres for the event store" --system events
 
 ### `intent decision update <id>`
 
-Update a decision's status or title.
+Update a decision's status, title, or system.
 
 ```bash
 intent decision update DEC-0001 --status superseded
 intent decision update DEC-0001 --title "Use short-lived JWTs (revised)"
+intent decision update DEC-0001 --system auth
+```
+
+### `intent decision show <id>`
+
+Show full details of a decision, including all metadata and the markdown body.
+
+```bash
+intent decision show DEC-0001
 ```
 
 ### `intent decision list`
 
-List all decisions.
+List all decisions, optionally filtered.
 
 ```bash
 intent decision list
+intent decision list --status active
+intent decision list --system auth
+intent decision list --tag security
 ```
 
 ---
@@ -264,12 +312,33 @@ intent constraint add --title "No external databases in the core package" --seve
 intent constraint add --title "Prefer open source dependencies" --severity soft --system core
 ```
 
+### `intent constraint update <id>`
+
+Update a constraint's title, severity, or system.
+
+```bash
+intent constraint update CON-0001 --severity soft
+intent constraint update CON-0001 --title "No external databases in core or schemas packages"
+intent constraint update CON-0001 --system core
+```
+
+### `intent constraint show <id>`
+
+Show full details of a constraint, including all metadata and the markdown body.
+
+```bash
+intent constraint show CON-0001
+```
+
 ### `intent constraint list`
 
-List all constraints.
+List all constraints, optionally filtered.
 
 ```bash
 intent constraint list
+intent constraint list --severity hard
+intent constraint list --system core
+intent constraint list --tag compliance
 ```
 
 ---
@@ -361,23 +430,61 @@ Displays:
 
 ### `intent export <target>`
 
-Export intent context as a formatted markdown block into the config file that your editor or AI tool reads automatically.
+Export intent context to the config file that your editor or AI tool reads automatically.
 
 ```bash
 intent export claude    # → CLAUDE.md
 intent export cursor    # → .cursor/rules
 intent export copilot   # → .github/copilot-instructions.md
+intent export windsurf  # → .windsurfrules
+intent export html      # → intent-context.html  (semantic HTML, best for agent parsing)
+intent export json      # → intent-context.json  (structured JSON)
 ```
 
-All three support an optional `--system` filter:
+All targets support an optional `--system` filter:
 
 ```bash
 intent export claude --system marketplace
 ```
 
-The exported block is wrapped in `<!-- intent-context:start -->` / `<!-- intent-context:end -->` markers so re-running the command updates it in place without touching the rest of the file.
+All markdown targets (`claude`, `cursor`, `copilot`, `windsurf`) export the same content: agent instructions, constraints (hard ones first), active plans, architectural decisions, and systems. The block is wrapped in `<!-- intent-context:start -->` / `<!-- intent-context:end -->` markers so re-running updates it in place without touching the rest of the file.
 
-**When to run it:** after `intent init`, and again whenever you add or update `.intent/` files. You can wire it into a git hook or CI step to keep it current automatically.
+The `html` and `json` targets always overwrite the output file.
+
+#### HTML format
+
+`intent export html` produces a self-contained `intent-context.html` with three layers:
+
+- **Embedded JSON blob** (`<script type="application/json" id="intent-data">`) — full structured context for programmatic access, no parsing required
+- **Semantic HTML sections** — `<section id="plans">`, `<section id="constraints">` etc., with `<article data-id="..." data-status="..." data-system="...">` per record
+- **Rendered body** — each record's markdown body converted to HTML for human readability
+
+Agents can query the JSON blob directly or use `data-*` attributes as CSS selectors (e.g. `[data-status="active"]`). The file can also be opened in a browser.
+
+#### `--watch` flag
+
+All targets support `--watch`, which re-exports automatically whenever any `.intent/` file changes:
+
+```bash
+intent export claude --watch
+intent export html --watch
+```
+
+The terminal shows a timestamped line on each successful re-export. Use Ctrl+C to stop.
+
+**When to run it:** after `intent init`, and again whenever you add or update `.intent/` files. Or use `--watch` to keep it current continuously during development.
+
+---
+
+### `intent search <query>`
+
+Full-text search across all intent files — plans, decisions, systems, and constraints — ranked by relevance with context excerpts.
+
+```bash
+intent search "jwt authentication"
+intent search "vendor listing limit"
+intent search "compliance"
+```
 
 ---
 
@@ -515,17 +622,19 @@ Add to your ChatGPT desktop MCP config (`~/Library/Application Support/ChatGPT/m
 
 | Tool | Description |
 |---|---|
-| `intent_context` | Get all plans, decisions, and systems. Optionally filter by system. |
-| `intent_review_diff` | Get intent context relevant to the current git diff. Supports `--base` for CI. |
-| `intent_list_plans` | List all plans. |
-| `intent_list_decisions` | List all architectural decisions. |
-| `intent_list_systems` | List all system definitions. |
+| `intent_context` | Get all plans, decisions, systems, and constraints. Optionally filter by system. |
+| `intent_review_diff` | Get intent context relevant to the current git diff. Supports `base` for CI. |
+| `intent_list_plans` | List all plans. Supports `status`, `system`, `tag` filters. |
+| `intent_list_decisions` | List all architectural decisions. Supports `status`, `system`, `tag` filters. |
+| `intent_list_systems` | List all system definitions. Supports `tag` filter. |
+| `intent_list_constraints` | List all constraints. Supports `severity`, `system`, `tag` filters. |
+| `intent_search` | Full-text search across all intent files; returns matches ranked by relevance with excerpts. |
 | `intent_rebuild_links` | Rebuild the links index. |
 | `intent_validate` | Validate all `.intent/` files and check referential integrity. |
 | `intent_status` | Health overview: counts, active/draft plans, links index state, validation summary. |
-| `intent_agent_prepare` | Keyword-score plans/decisions/systems against a task; return focused context bundle. |
-| `intent_agent_review` | Review diff coverage and validation; returns checklist and `suggestDecision` signal. |
-| `intent_export` | Export context as markdown, or write to `claude`/`cursor`/`copilot` target files. |
+| `intent_agent_prepare` | Keyword-score plans/decisions/systems/constraints against a task; return focused context bundle. Persists task to session for use by `intent_agent_review`. |
+| `intent_agent_review` | Review diff coverage and validation; returns checklist, `suggestDecision` signal, and the task from the last prepare session. |
+| `intent_export` | Export context as markdown, HTML, JSON, or write to `claude`/`cursor`/`copilot`/`windsurf` target files. |
 
 ### Example agent workflow
 
@@ -556,7 +665,7 @@ Intent has two commands built specifically for AI agent workflows — loading fo
 
 ### `intent agent prepare [task]`
 
-Get intent context relevant to a task. Keyword-scores all plans, decisions, and systems against the task description, pulls in cross-referenced items transitively, and falls back to full context when nothing matches or no task is given.
+Get intent context relevant to a task. Keyword-scores all plans, decisions, systems, and constraints against the task description, pulls in cross-referenced items transitively, and falls back to full context when nothing matches or no task is given. The task is persisted to `.intent/.agent-session.json` so `intent agent review` can reference it.
 
 ```bash
 intent agent prepare "add OAuth login with GitHub"
@@ -569,7 +678,7 @@ The `--hook` flag emits JSON on stdout — useful for Claude Code hooks that nee
 
 ### `intent agent review`
 
-Review the current diff against intent and validate all files. Produces a structured checklist and flags whether unlinked changes suggest a new decision record is needed.
+Review the current diff against intent and validate all files. Produces a structured checklist and flags whether unlinked changes suggest a new decision record is needed. Automatically loads the task from the last `agent prepare` session.
 
 ```bash
 intent agent review                       # staged changes

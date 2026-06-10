@@ -1,9 +1,11 @@
-import { type PlanFile, type DecisionFile, type SystemFile } from "@dev-sixbyfive/intent-schemas";
+import * as fs from "node:fs/promises";
+import { type PlanFile, type DecisionFile, type SystemFile, type ConstraintFile } from "@dev-sixbyfive/intent-schemas";
 import { type Result, ok } from "./result.js";
 import { loadContext, type FilteredContext } from "./context.js";
 import { reviewDiff, type ReviewDiffResult } from "./reviewDiff.js";
 import { validateIntent, type ValidationResult } from "./validate.js";
 import { formatContextBlock } from "./export.js";
+import { agentSessionPath } from "./paths.js";
 
 // ─── Tokeniser ───────────────────────────────────────────────────────────────
 
@@ -53,6 +55,41 @@ function scoreSystem(tokens: string[], s: SystemFile): number {
   );
 }
 
+function scoreConstraint(tokens: string[], c: ConstraintFile): number {
+  if (tokens.length === 0) return 1;
+  return (
+    scoreText(tokens, c.frontmatter.title) * 3 +
+    c.frontmatter.tags.reduce((n, tag) => n + (tokens.includes(tag.toLowerCase()) ? 2 : 0), 0) +
+    Math.min(scoreText(tokens, c.body), 5)
+  );
+}
+
+// ─── Session ─────────────────────────────────────────────────────────────────
+
+export interface AgentSession {
+  task: string | null;
+  preparedAt: string;
+}
+
+async function saveSession(root: string, task: string | null): Promise<void> {
+  try {
+    await fs.writeFile(
+      agentSessionPath(root),
+      JSON.stringify({ task, preparedAt: new Date().toISOString() }),
+      "utf8",
+    );
+  } catch { /* best-effort */ }
+}
+
+export async function loadSession(root: string): Promise<AgentSession | null> {
+  try {
+    const raw = await fs.readFile(agentSessionPath(root), "utf8");
+    return JSON.parse(raw) as AgentSession;
+  } catch {
+    return null;
+  }
+}
+
 // ─── Prepare ─────────────────────────────────────────────────────────────────
 
 export interface PrepareResult {
@@ -60,6 +97,7 @@ export interface PrepareResult {
   plans: PlanFile[];
   decisions: DecisionFile[];
   systems: SystemFile[];
+  constraints: ConstraintFile[];
   config: FilteredContext["config"];
   formatted: string;
 }
@@ -74,20 +112,26 @@ export async function prepareAgentContext(
   const ctx = ctxResult.value;
   const tokens = task ? tokenize(task) : [];
 
-  // Score every item
   const planScores = new Map(ctx.plans.map((p) => [p.frontmatter.id, scorePlan(tokens, p)]));
   const decisionScores = new Map(ctx.decisions.map((d) => [d.frontmatter.id, scoreDecision(tokens, d)]));
   const systemScores = new Map(ctx.systems.map((s) => [s.frontmatter.id, scoreSystem(tokens, s)]));
+  const constraintScores = new Map(ctx.constraints.map((c) => [c.frontmatter.id, scoreConstraint(tokens, c)]));
 
   let matchedPlans = ctx.plans.filter((p) => (planScores.get(p.frontmatter.id) ?? 0) > 0);
   let matchedDecisions = ctx.decisions.filter((d) => (decisionScores.get(d.frontmatter.id) ?? 0) > 0);
   let matchedSystems = ctx.systems.filter((s) => (systemScores.get(s.frontmatter.id) ?? 0) > 0);
+  let matchedConstraints = ctx.constraints.filter((c) => (constraintScores.get(c.frontmatter.id) ?? 0) > 0);
 
   // Nothing scored → fall back to full context
-  if (task && matchedPlans.length === 0 && matchedDecisions.length === 0 && matchedSystems.length === 0) {
+  if (
+    task &&
+    matchedPlans.length === 0 && matchedDecisions.length === 0 &&
+    matchedSystems.length === 0 && matchedConstraints.length === 0
+  ) {
     matchedPlans = [...ctx.plans];
     matchedDecisions = [...ctx.decisions];
     matchedSystems = [...ctx.systems];
+    matchedConstraints = [...ctx.constraints];
   }
 
   // Transitively pull in decisions referenced by matched plans
@@ -112,15 +156,31 @@ export async function prepareAgentContext(
     }
   }
 
-  // Sort by score descending
   matchedPlans.sort((a, b) => (planScores.get(b.frontmatter.id) ?? 0) - (planScores.get(a.frontmatter.id) ?? 0));
   matchedDecisions.sort((a, b) => (decisionScores.get(b.frontmatter.id) ?? 0) - (decisionScores.get(a.frontmatter.id) ?? 0));
   matchedSystems.sort((a, b) => (systemScores.get(b.frontmatter.id) ?? 0) - (systemScores.get(a.frontmatter.id) ?? 0));
+  matchedConstraints.sort((a, b) => (constraintScores.get(b.frontmatter.id) ?? 0) - (constraintScores.get(a.frontmatter.id) ?? 0));
 
-  const filtered: FilteredContext = { ...ctx, plans: matchedPlans, decisions: matchedDecisions, systems: matchedSystems };
+  const filtered: FilteredContext = {
+    ...ctx,
+    plans: matchedPlans,
+    decisions: matchedDecisions,
+    systems: matchedSystems,
+    constraints: matchedConstraints,
+  };
   const formatted = formatContextBlock(filtered);
 
-  return ok({ task, plans: matchedPlans, decisions: matchedDecisions, systems: matchedSystems, config: ctx.config, formatted });
+  await saveSession(root, task);
+
+  return ok({
+    task,
+    plans: matchedPlans,
+    decisions: matchedDecisions,
+    systems: matchedSystems,
+    constraints: matchedConstraints,
+    config: ctx.config,
+    formatted,
+  });
 }
 
 // ─── Review ──────────────────────────────────────────────────────────────────
@@ -133,6 +193,7 @@ export interface ChecklistItem {
 }
 
 export interface AgentReviewReport {
+  task: string | null;
   diff: ReviewDiffResult | null;
   validation: ValidationResult;
   checklist: ChecklistItem[];
@@ -145,9 +206,10 @@ export async function reviewAgent(
   staged = true,
   base?: string,
 ): Promise<Result<AgentReviewReport>> {
-  const [diffResult, validateResult] = await Promise.all([
+  const [diffResult, validateResult, session] = await Promise.all([
     reviewDiff(root, staged, base),
     validateIntent(root),
+    loadSession(root),
   ]);
 
   if (!validateResult.ok) return validateResult;
@@ -155,7 +217,6 @@ export async function reviewAgent(
   const checklist: ChecklistItem[] = [];
   let diffValue: ReviewDiffResult | null = null;
 
-  // ── Diff checklist ─────────────────────────────────────────────────────────
   if (diffResult.ok) {
     diffValue = diffResult.value;
     if (diffValue.relatedEntries.length === 0 && diffValue.diff.files.length > 0) {
@@ -181,7 +242,6 @@ export async function reviewAgent(
     });
   }
 
-  // ── Validation checklist ───────────────────────────────────────────────────
   const validation = validateResult.value;
   if (validation.issues.length === 0) {
     checklist.push({ status: "ok", category: "validation", message: "All intent files valid" });
@@ -201,5 +261,5 @@ export async function reviewAgent(
     diffValue.relatedEntries.length === 0 &&
     diffValue.diff.files.length > 0;
 
-  return ok({ diff: diffValue, validation, checklist, suggestDecision });
+  return ok({ task: session?.task ?? null, diff: diffValue, validation, checklist, suggestDecision });
 }

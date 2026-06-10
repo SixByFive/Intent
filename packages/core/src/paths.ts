@@ -56,3 +56,9 @@ export function systemPath(root: string, name: string): string {
 export function constraintPath(root: string, id: string): string {
   return path.join(root, INTENT_DIR, CONSTRAINTS_DIR, `${id}.md`);
 }
+
+export const AGENT_SESSION_FILE = ".agent-session.json";
+
+export function agentSessionPath(root: string): string {
+  return path.join(root, INTENT_DIR, AGENT_SESSION_FILE);
+}

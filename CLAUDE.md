@@ -135,9 +135,23 @@ When `.intent/` is present, follow these rules:
 4. **If a plan's work is complete**, update its `status` to `archived` in the frontmatter.
 5. **Commit `.intent/` files** alongside the code changes they describe.
 
+### Constraints
+
+**CON-0001** — All business logic lives in core — CLI and MCP are thin wrappers `[hard]`
+System: core
+
+> ## Description
+> `packages/cli` command handlers do exactly three things: resolve the git root, call a `core` function, format and print the result. `packages/mcp` tool handlers do the same. No business logic — no filtering, scoring, parsing, or file I/O — lives in either package.
+
+**CON-0002** — No new runtime dependencies without a decision record `[soft]`
+System: core
+
+> ## Description
+> Adding a new runtime dependency to `core`, `cli`, or `mcp` requires a corresponding decision record explaining why the library was chosen over a built-in or simpler alternative.
+
 ### Active Plans
 
-**plan-agent-commands** — Agent workflow commands `[active]`
+**plan-agent-commands** — Agent workflow commands `[archived]`
 
 > ## Goal
 > Implement `intent agent prepare <task>` and `intent agent review` — commands designed for AI agent workflows that need to load context before starting a task and verify intent alignment after completing it.
@@ -149,10 +163,16 @@ When `.intent/` is present, follow these rules:
 > Ship a working monorepo with all four packages (schemas, core, cli, mcp), a full test suite, GitHub Actions CI, export commands, and MCP integrations for Claude, Cursor, Codex, and ChatGPT.
 > ## Reason
 
-**plan-npm-publish** — Publish to npm `[active]`
+**plan-npm-publish** — Publish to npm `[archived]`
 
 > ## Goal
 > Publish `@intent/cli`, `@intent/core`, `@intent/schemas`, and `@intent/mcp` to npm under the `@intent` scope so users can install with `npm install -g @intent/cli`.
+> ## Reason
+
+**plan-v1-improvements** — v1 feature improvements `[archived]`
+
+> ## Goal
+> Extend the v1 feature set with improvements across export formats, agent workflow, and CLI usability.
 > ## Reason
 
 ### Architectural Decisions
@@ -181,6 +201,21 @@ When `.intent/` is present, follow these rules:
 
 > ## Context
 > We needed runtime validation of `.intent/` files (since they are hand-edited markdown) and TypeScript types for all file structures. Maintaining both separately causes drift.
+
+**DEC-0006** — HTML as a dedicated export target for agent readability `[active]`
+
+> ## Context
+> The existing export targets (`claude`, `cursor`, `copilot`) all produce markdown blocks. Markdown is readable for humans and LLMs, but AI agents that parse exported context programmatically have a harder time extracting structured data from prose. Research indicated agents benefit from semantic HTML structure — CSS selectors, `data-*` attributes, and embedded JSON make context more machine-traversable without sacrificing human readability.
+
+**DEC-0007** — Agent session persistence via .intent/.agent-session.json `[active]`
+
+> ## Context
+> `intent agent prepare <task>` and `intent agent review` are designed to be called sequentially in an agent workflow. Review needs to know what task was being worked on, but the two commands are separate processes — there is no shared state between them.
+
+**DEC-0008** — Native fs.watch over chokidar for watch mode `[active]`
+
+> ## Context
+> The `--watch` flag on `intent export` needs to monitor `.intent/` subdirectories for changes and re-export. `chokidar` is the standard Node.js file-watching library and handles cross-platform edge cases well. However, it is a substantial dependency (pulls in glob, braces, picomatch, etc.).
 
 ### Systems
 

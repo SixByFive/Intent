@@ -16,3 +16,4 @@ export * from "./constraints.js";
 export * from "./validate.js";
 export * from "./status.js";
 export * from "./agent.js";
+export * from "./search.js";

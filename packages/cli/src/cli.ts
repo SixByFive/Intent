@@ -12,13 +12,14 @@ import { makeValidateCommand } from "./commands/validate.js";
 import { makeStatusCommand } from "./commands/status.js";
 import { makeAgentCommand } from "./commands/agent.js";
 import { makeConstraintCommand } from "./commands/constraint.js";
+import { makeSearchCommand } from "./commands/search.js";
 
 const program = new Command();
 
 program
   .name("intent")
   .description("Git-native reasoning layer — track the why behind code")
-  .version("0.0.1");
+  .version("1.1.0");
 
 program.addCommand(makeInitCommand());
 program.addCommand(makePlanCommand());
@@ -32,6 +33,7 @@ program.addCommand(makeValidateCommand());
 program.addCommand(makeStatusCommand());
 program.addCommand(makeAgentCommand());
 program.addCommand(makeConstraintCommand());
+program.addCommand(makeSearchCommand());
 
 program.parseAsync(process.argv).catch((err: unknown) => {
   console.error(err);

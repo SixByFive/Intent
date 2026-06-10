@@ -1,6 +1,6 @@
 {
   "name": "@dev-sixbyfive/intent",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Git-native reasoning layer — installs the intent CLI and MCP server in one go",
   "type": "module",
   "bin": {
